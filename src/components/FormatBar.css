@@ -1,0 +1,68 @@
+.formatbar {
+  width: 56px;
+  min-width: 56px;
+  height: 100%;
+  background: var(--bg-elev);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 6px;
+  overflow-y: auto;
+}
+
+.formatbar__section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.formatbar__label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin-bottom: 4px;
+  height: 60px;
+}
+
+.fmt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  color: var(--text-soft);
+  transition: background 0.1s, color 0.1s;
+}
+.fmt-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.fmt-btn:active:not(:disabled) {
+  background: var(--bg-active);
+}
+.fmt-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fmt-select {
+  width: 44px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  padding: 0 2px;
+}
+.fmt-select:disabled {
+  opacity: 0.4;
+}

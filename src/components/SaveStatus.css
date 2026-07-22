@@ -1,0 +1,27 @@
+.save-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  border-left: 1px solid var(--border-soft);
+}
+.save-status.state-saving {
+  color: var(--text-soft);
+}
+.save-status.state-saved {
+  color: var(--good);
+}
+.save-status.state-error {
+  color: var(--danger);
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
