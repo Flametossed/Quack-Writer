@@ -239,3 +239,69 @@ changes.
 - The user tests quickly and reports concrete visual/interaction issues. Keep
   updates focused, let HMR show changes, and run typecheck/lint/build after each
   completed interaction pass.
+
+## 2026-07-22: custom font system (uncommitted)
+
+Added a multi-source font picker. All work is **uncommitted** in the dirty tree
+on top of the pushed state; commit only after explicit approval.
+
+Sources supported, all surfaced in the FormatBar's "Editor font" section:
+
+- **More built-in presets** — the old `system / serif / sans / mono` union was
+  replaced with a stable ID list in `src/store/font.ts` (`PRESETS`). Added
+  Verdana, Trebuchet MS, Times, Georgia, Courier New, Garamond, and
+  "Inter (if installed)".
+- **Add family by name** — text inputs under the dropdown persist a
+  `source: "named"` custom entry; the family string is applied to
+  `--font-editor` directly. No file IO.
+- **Import font file** — opens a native picker filtered to `.ttf/.otf/.woff/.woff2`,
+  copies the bytes into `<app_data_dir>/fonts/<uid>.<ext>` via the new Rust
+  `import_font_file` command, registers it through `FontFace`, and applies a
+  synthetic family name (`Quack-<id>`) so the file's internal name doesn't
+  matter. Persists across relaunches; file-font bytes are read back through
+  `read_font_bytes` on startup by `initCustomFonts()`.
+
+Custom entries are listed under an "Added by you" `<optgroup>` and can be
+removed with the per-active "Remove …" button (file fonts also delete the
+backing copy). State persists in `quack.customFonts` (localStorage). The
+active id stays in `quack.font` (preset key or `custom:<id>`).
+
+New/changed files:
+
+- `src-tauri/src/fs_io.rs` — new commands `pick_font_file`,
+  `import_font_file` (copies into `app_data_dir/fonts/`, validates a
+  frontend-supplied UID so it can't escape that folder), `read_font_bytes`
+  (returns raw bytes via `tauri::ipc::Response` → ArrayBuffer on the JS side,
+  no base64 round-trip), and `delete_font_file` (best-effort, missing is OK).
+- `src-tauri/src/lib.rs` — registers the four new commands.
+- `src/lib/fontIo.ts` — dual-mode helpers (native dialog + persisted copy vs
+  hidden `<input type=file>` web fallback that keeps the font in-memory only).
+- `src/store/font.ts` — rewritten around an ID-based registry. Still exports
+  `EditorFont` (now `string`), `MIN_FONT_SIZE`, `MAX_FONT_SIZE`,
+  `DEFAULT_FONT_SIZE`, `useFont`.
+- `src/components/FormatBar.tsx` — dropdown now built from `PRESETS` + custom
+  list, plus the Add-family and Import-font controls. Removed the old hardcoded
+  `FONT_LABELS` record.
+- `src/components/FormatBar.css` — styles for the new `.fmt-font__remove`,
+  `.fmt-addfont`, `.fmt-addfont__input`, `.fmt-addfont__btn` controls.
+
+No new `tauri-plugin-fs` dependency and **no capability file changes**: every
+filesystem access goes through custom Rust commands (the same pattern the
+existing `read_text_file`/`write_text_file` use), so the minimal
+`capabilities/default.json` stays untouched.
+
+### Verification done
+
+`npm run typecheck` and `npm run lint` both clean on this machine (darwin dev
+host). The Rust side was written to match the existing fs_io.rs patterns and
+has **not** been cargo-checked here; run `cargo check` on the Windows host
+before launching `npm run tauri dev`. A `npm run build` has not been run.
+
+### Known follow-ups for the custom font work
+
+- Web (`npm run dev`) file-font imports are session-only — not persisted across
+  reloads. Named-family presets and active-font persistence still work there.
+- A failed file import silently lands as an "unavailable" entry in the
+  dropdown; no toast/error UI is shown yet.
+- Font picking is disabled while a Markdown doc is in preview mode (kept the
+  existing `disabled` behavior) — the add/import controls are still enabled.

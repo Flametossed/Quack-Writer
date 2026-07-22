@@ -4,7 +4,9 @@ import {
   MIN_FONT_SIZE,
   MAX_FONT_SIZE,
   DEFAULT_FONT_SIZE,
+  PRESETS,
   type EditorFont,
+  type CustomFont,
 } from "../store/font";
 import {
   Heading1,
@@ -19,8 +21,11 @@ import {
   Link as LinkIcon,
   Strikethrough,
   SquareCode,
+  Plus,
+  Upload,
+  Trash2,
 } from "lucide-react";
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import "./FormatBar.css";
 
 // Formatting reaches the active CodeMirror view through a shared singleton
@@ -148,13 +153,6 @@ function toggleLinePrefix(kind: LineKind, headingLevel = 1) {
   view.focus();
 }
 
-const FONT_LABELS: Record<EditorFont, string> = {
-  system: "System",
-  serif: "Serif",
-  sans: "Sans",
-  mono: "Mono",
-};
-
 export function FormatBar() {
   const doc = useDocs((s) => s.docs.find((d) => d.id === s.activeId));
   const font = useFont((s) => s.font);
@@ -162,6 +160,14 @@ export function FormatBar() {
   const size = useFont((s) => s.size);
   const bumpSize = useFont((s) => s.bumpSize);
   const resetSize = useFont((s) => s.resetSize);
+  const customFonts = useFont((s) => s.customFonts);
+  const addNamedFamily = useFont((s) => s.addNamedFamily);
+  const addFileFont = useFont((s) => s.addFileFont);
+  const removeCustom = useFont((s) => s.removeCustom);
+
+  const [newLabel, setNewLabel] = useState("");
+  const [newFamily, setNewFamily] = useState("");
+  const [importing, setImporting] = useState(false);
 
   // Formatting edits the markdown source, so it's off while previewing.
   const disabled = !doc || (doc.language === "markdown" && doc.view === "preview");
@@ -320,12 +326,85 @@ export function FormatBar() {
           disabled={disabled}
           onChange={(e) => setFont(e.target.value as EditorFont)}
         >
-          {(Object.keys(FONT_LABELS) as EditorFont[]).map((f) => (
-            <option key={f} value={f}>
-              {FONT_LABELS[f]}
-            </option>
-          ))}
+          <optgroup label="Built-in">
+            {PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>{p.label}</option>
+            ))}
+          </optgroup>
+          {customFonts.length > 0 && (
+            <optgroup label="Added by you">
+              {customFonts.map((c) => {
+                const value = `custom:${c.id}`;
+                const unavailable = c.source === "file" && !c.loaded;
+                return (
+                  <option key={c.id} value={value} disabled={unavailable}>
+                    {c.label}{unavailable ? " (unavailable)" : ""}
+                  </option>
+                );
+              })}
+            </optgroup>
+          )}
         </select>
+
+        {(() => {
+          const active: CustomFont | undefined = customFonts.find(
+            (c) => `custom:${c.id}` === font
+          );
+          return active ? (
+            <button
+              type="button"
+              className="fmt-font__remove"
+              onClick={() => void removeCustom(active.id)}
+              title={`Remove "${active.label}"`}
+            >
+              <Trash2 size={12} /> Remove "{active.label}"
+            </button>
+          ) : null;
+        })()}
+
+        <div className="fmt-addfont" role="group" aria-label="Add font by family name">
+          <input
+            className="fmt-addfont__input"
+            type="text"
+            placeholder="Family name, e.g. Comic Sans MS"
+            value={newFamily}
+            onChange={(e) => setNewFamily(e.target.value)}
+          />
+          <input
+            className="fmt-addfont__input"
+            type="text"
+            placeholder="Display label (optional)"
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+          />
+          <button
+            type="button"
+            className="fmt-addfont__btn"
+            disabled={!newFamily.trim()}
+            onClick={() => {
+              addNamedFamily(newLabel.trim() || newFamily, newFamily);
+              setNewLabel("");
+              setNewFamily("");
+            }}
+          >
+            <Plus size={12} /> Add family
+          </button>
+          <button
+            type="button"
+            className="fmt-addfont__btn fmt-addfont__btn--full"
+            disabled={importing}
+            onClick={async () => {
+              setImporting(true);
+              try {
+                await addFileFont();
+              } finally {
+                setImporting(false);
+              }
+            }}
+          >
+            <Upload size={12} /> {importing ? "Importing…" : "Import font file…"}
+          </button>
+        </div>
         {/* Text size also applies in preview, so it is never disabled. */}
         <div className="fmt-size" role="group" aria-label="Text size">
           <button

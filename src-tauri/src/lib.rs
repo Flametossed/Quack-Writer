@@ -32,6 +32,10 @@ pub fn run() {
             fs_io::create_text_file,
             fs_io::create_folder,
             fs_io::ask_confirm,
+            fs_io::pick_font_file,
+            fs_io::import_font_file,
+            fs_io::read_font_bytes,
+            fs_io::delete_font_file,
             spell::spell_suggest,
             spell::spell_add_word,
         ])
