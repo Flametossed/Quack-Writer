@@ -6,9 +6,6 @@ A sleek, modern, **native Windows writing app** — a faster, more capable
 alternative to Notepad. Built with **Tauri 2, React 18, TypeScript, Zustand,
 and CodeMirror 6**.
 
-![Start Menu](docs/start-menu.png)
-![Writing interface](docs/writing-interface.png)
-
 ## Highlights
 
 **Writing**
