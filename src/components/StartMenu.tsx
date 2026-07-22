@@ -1,47 +1,39 @@
 import { DuckLogo } from "./DuckLogo";
 import { useRecents } from "../store/recents";
 import { useDocs, makeDoc } from "../store/docs";
-import { openFile } from "../lib/fileIo";
-import { FileText, FilePlus, FolderOpen, Clock } from "lucide-react";
+import { useSaveStore } from "../store/save";
+import { useUi } from "../store/ui";
+import { openFromPicker, openRecent } from "../lib/docActions";
+import {
+  FileText,
+  FilePlus,
+  FolderOpen,
+  Clock,
+  AlertTriangle,
+  ArrowRight,
+} from "lucide-react";
 import "./StartMenu.css";
 
-export function StartMenu({ onOpen }: { onOpen: () => void }) {
+export function StartMenu() {
   const recents = useRecents((s) => s.recents);
-  const removeRecent = useRecents((s) => s.remove);
-  const addRecent = useRecents((s) => s.add);
   const openDoc = useDocs((s) => s.openDoc);
+  const docsCount = useDocs((s) => s.docs.length);
+  const setScreen = useUi((s) => s.setScreen);
+  const errorMessage = useSaveStore((s) =>
+    s.state === "error" ? s.message : null
+  );
 
-  async function handleNew() {
-    const doc = makeDoc("Untitled.md", "");
-    openDoc(doc);
-    onOpen();
+  function handleNew() {
+    openDoc(makeDoc("Untitled.md", ""));
+    setScreen("editor");
   }
 
   async function handleOpen() {
-    const res = await openFile();
-    if (!res) return;
-    addRecent(res.path, res.name);
-    const doc = makeDoc(res.name, res.content, res.path);
-    openDoc(doc);
-    onOpen();
+    if (await openFromPicker()) setScreen("editor");
   }
 
   async function handleRecent(path: string, name: string) {
-    const isTauri = "__TAURI_INTERNALS__" in window;
-    if (isTauri) {
-      try {
-        const { invoke } = await import("@tauri-apps/api/core");
-        const content = (await invoke("read_text_file", { path })) as string;
-        const doc = makeDoc(name, content, path);
-        openDoc(doc);
-        addRecent(path, name);
-        onOpen();
-        return;
-      } catch {
-        removeRecent(path);
-      }
-    }
-    await handleOpen();
+    if (await openRecent(path, name)) setScreen("editor");
   }
 
   return (
@@ -57,10 +49,29 @@ export function StartMenu({ onOpen }: { onOpen: () => void }) {
           <button className="btn btn--primary" onClick={handleNew}>
             <FilePlus size={18} /> New Document
           </button>
-          <button className="btn" onClick={handleOpen}>
+          <button className="btn" onClick={() => void handleOpen()}>
             <FolderOpen size={18} /> Open…
           </button>
         </div>
+
+        {docsCount > 0 && (
+          <button
+            className="start__continue"
+            onClick={() => setScreen("editor")}
+          >
+            Continue editing
+            <span className="start__continue-count">
+              {docsCount} open document{docsCount === 1 ? "" : "s"}
+            </span>
+            <ArrowRight size={15} />
+          </button>
+        )}
+
+        {errorMessage && (
+          <div className="start__error" role="alert">
+            <AlertTriangle size={14} /> {errorMessage}
+          </div>
+        )}
 
         <div className="start__recents">
           <div className="start__recents-head">
@@ -74,7 +85,7 @@ export function StartMenu({ onOpen }: { onOpen: () => void }) {
                 <li key={r.path}>
                   <button
                     className="recents-item"
-                    onClick={() => handleRecent(r.path, r.name)}
+                    onClick={() => void handleRecent(r.path, r.name)}
                     title={r.path}
                   >
                     <FileText size={16} />
@@ -90,4 +101,3 @@ export function StartMenu({ onOpen }: { onOpen: () => void }) {
     </div>
   );
 }
-

@@ -1,17 +1,15 @@
-import { useState } from "react";
 import { StartMenu } from "./components/StartMenu";
 import { EditorView } from "./components/EditorView";
-import { useDocs } from "./store/docs";
+import { useUi } from "./store/ui";
+import { useCloseGuard } from "./lib/useCloseGuard";
 
 export default function App() {
-  const docsCount = useDocs((s) => s.docs.length);
-  const [started, setStarted] = useState(false);
-
-  const showEditor = started || docsCount > 0;
+  const screen = useUi((s) => s.screen);
+  useCloseGuard();
 
   return (
     <div className="app">
-      {showEditor ? <EditorView /> : <StartMenu onOpen={() => setStarted(true)} />}
+      {screen === "editor" ? <EditorView /> : <StartMenu />}
     </div>
   );
 }

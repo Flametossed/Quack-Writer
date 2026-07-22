@@ -1,12 +1,12 @@
 .statusbar {
-  height: 26px;
-  min-height: 26px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 30px;
+  min-height: 30px;
   padding: 0 10px;
-  background: var(--bg-elev);
   border-top: 1px solid var(--border);
+  background: var(--bg-elev);
   color: var(--text-dim);
   font-size: 11px;
   user-select: none;
@@ -19,17 +19,96 @@
   gap: 8px;
 }
 
+.statusbar__left {
+  flex: 1;
+  min-width: 0;
+}
+
+.statusbar__right {
+  flex: none;
+}
+
 .statusbar__right > span {
   font-variant-numeric: tabular-nums;
 }
 
-.statusbar__path {
-  font-family: var(--font-mono);
+.statusbar__selection {
+  color: var(--accent);
+}
+
+.statusbar__find {
+  display: flex;
+  align-items: center;
+  flex: none;
+  width: clamp(180px, 22vw, 270px);
+  height: 22px;
+  padding-left: 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text-dim);
+  transition: border-color 0.1s, box-shadow 0.1s;
+}
+.statusbar__find:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+}
+.statusbar__find.is-disabled {
+  opacity: 0.5;
+}
+.statusbar__find input {
+  min-width: 40px;
+  flex: 1;
+  height: 100%;
+  padding: 0 5px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  user-select: text;
+}
+.statusbar__find input::placeholder {
+  color: var(--text-dim);
+}
+.statusbar__find input::-webkit-search-cancel-button {
+  display: none;
+}
+.statusbar__find-count {
+  flex: none;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.statusbar__find-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
   color: var(--text-soft);
-  white-space: nowrap;
+}
+.statusbar__find-action:hover:not(:disabled),
+.statusbar__find-action:focus-visible {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.statusbar__find-action:focus-visible {
+  outline: 1px solid var(--accent);
+}
+.statusbar__find-action:disabled {
+  opacity: 0.32;
+}
+
+.statusbar__path {
+  max-width: 32vw;
   overflow: hidden;
+  color: var(--text-soft);
+  font-family: var(--font-mono);
   text-overflow: ellipsis;
-  max-width: 50vw;
+  white-space: nowrap;
 }
 
 .status-btn {
@@ -45,6 +124,9 @@
 .status-btn:hover:not(:disabled) {
   background: var(--bg-hover);
   color: var(--text);
+}
+.status-btn:focus-visible {
+  outline: 1px solid var(--accent);
 }
 .status-btn:disabled {
   opacity: 0.4;

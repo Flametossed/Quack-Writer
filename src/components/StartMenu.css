@@ -82,6 +82,45 @@
   filter: brightness(1.05);
 }
 
+.start__continue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+  padding: 9px 14px;
+  margin: -12px 0 24px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  color: var(--text-soft);
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.start__continue:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+  border-color: var(--accent);
+}
+.start__continue-count {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.start__error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  font-size: 13px;
+  text-align: left;
+}
+
 .start__recents {
   width: 100%;
   border-top: 1px solid var(--border-soft);

@@ -1,7 +1,15 @@
+.editor-shell {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .editor-view {
   display: flex;
   flex: 1;
-  height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 

@@ -1,0 +1,5 @@
+# Cap parallel rustc jobs so a full Rust build leaves headroom for the OS.
+# A cold `tauri dev` build previously saturated all 16 threads (plus Defender
+# scanning ~6k output files) and hard-froze the machine.
+[build]
+jobs = 8

@@ -6,9 +6,11 @@
   --bg-active: #3a3a3a;
   --border: #2e2e2e;
   --border-soft: #262626;
-  --text: #ececec;
+  /* Softened from pure-bright values: ~12:1 body contrast avoids dark-mode
+     halation/shimmer in long sessions while staying WCAG AA everywhere. */
+  --text: #d4d4d4;
   --text-soft: #b4b4b4;
-  --text-dim: #777777;
+  --text-dim: #8f8f8f;
   --accent: #e0a93c;
   --accent-soft: #e0a93c33;
   --accent-text: #1a1a1a;
@@ -17,11 +19,18 @@
   --radius: 10px;
   --radius-sm: 6px;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Text",
-    Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas,
-    monospace;
-  --font-editor: "SF Pro Display", -apple-system, "Segoe UI", Georgia, serif;
+  /* Windows-first stacks: Segoe UI Variable Text is Win11's reading-optimized
+     face; Cascadia Mono ships with Windows. Fallbacks cover Win10/dev-web. */
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", -apple-system, Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, "JetBrains Mono", ui-monospace,
+    Menlo, monospace;
+  --font-editor: "Segoe UI Variable Text", "Segoe UI", -apple-system, Georgia,
+    sans-serif;
+  /* Editor text zoom (Ctrl+=/−/0, Ctrl+wheel) writes this var at runtime. */
+  --editor-font-size: 15px;
+  /* Readable measure: em-based so chars-per-line stays ~70 at any zoom. */
+  --editor-measure: 40em;
   color-scheme: dark;
 }
 
@@ -33,9 +42,9 @@
   --bg-active: #e4dfd0;
   --border: #e2e0db;
   --border-soft: #ececea;
-  --text: #1d1d1d;
+  --text: #2b2b2b;
   --text-soft: #4a4a4a;
-  --text-dim: #8a8a8a;
+  --text-dim: #6f6f6f;
   --accent: #c98a1f;
   --accent-soft: #c98a1f22;
   --accent-text: #fff7e6;

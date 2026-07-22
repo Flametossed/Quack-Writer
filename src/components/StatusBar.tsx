@@ -1,83 +1,226 @@
+import { SearchQuery, setSearchQuery } from "@codemirror/search";
+import type { EditorView } from "@codemirror/view";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Moon,
+  Save,
+  Search,
+  Sun,
+  X,
+} from "lucide-react";
 import { useDocs } from "../store/docs";
+import { useSelection } from "../store/selection";
 import { useTheme } from "../store/theme";
-import { saveFile } from "../lib/fileIo";
-import { useRecents } from "../store/recents";
-import { useSaveStore } from "../store/save";
-import { useMemo } from "react";
-import { Save, Sun, Moon, Search } from "lucide-react";
+import { saveActiveDoc } from "../lib/docActions";
+import { editorViewBus } from "../lib/editorViewBus";
 import "./StatusBar.css";
 
-export function StatusBar() {
-  const doc = useDocs((s) => s.docs.find((d) => d.id === s.activeId));
-  const theme = useTheme((s) => s.theme);
-  const toggleTheme = useTheme((s) => s.toggle);
-  const addRecent = useRecents((s) => s.add);
-  const rename = useDocs((s) => s.rename);
-  const setSave = useSaveStore((s) => s.set);
+type SearchMatch = { from: number; to: number };
 
+function getMatches(view: EditorView, query: SearchQuery): SearchMatch[] {
+  if (!query.valid) return [];
+  const matches: SearchMatch[] = [];
+  const cursor = query.getCursor(view.state);
+  for (let next = cursor.next(); !next.done; next = cursor.next()) {
+    matches.push(next.value);
+  }
+  return matches;
+}
+
+function selectMatch(view: EditorView, match: SearchMatch) {
+  view.dispatch({
+    selection: { anchor: match.from, head: match.to },
+    scrollIntoView: true,
+  });
+}
+
+export function StatusBar() {
+  const doc = useDocs((state) =>
+    state.docs.find((candidate) => candidate.id === state.activeId)
+  );
+  const theme = useTheme((state) => state.theme);
+  const toggleTheme = useTheme((state) => state.toggle);
+  const selection = useSelection((state) => state.stats);
+  const findInputRef = useRef<HTMLInputElement>(null);
+  const [findText, setFindText] = useState("");
+  const [matchCount, setMatchCount] = useState(0);
+  const [matchIndex, setMatchIndex] = useState(-1);
+  const canFind =
+    !!doc && !(doc.language === "markdown" && doc.view === "preview");
+
+  // Deferred so fast typing isn't blocked by re-counting the whole document.
+  const deferredContent = useDeferredValue(doc?.content ?? "");
   const stats = useMemo(() => {
-    const text = doc?.content ?? "";
+    const text = deferredContent;
     const words = text.trim()
       ? text.trim().split(/\s+/).filter(Boolean).length
       : 0;
     const chars = text.length;
     const lines = text ? text.split("\n").length : 0;
     return { words, chars, lines };
-  }, [doc?.content]);
+  }, [deferredContent]);
 
-  async function handleSave() {
-    if (!doc) return;
-    try {
-      setSave("saving");
-      const res = await saveFile(doc.path, doc.content, doc.name);
-      if (res) {
-        if (res.path !== doc.path) {
-          rename(doc.id, res.name, res.path);
-          addRecent(res.path, res.name);
-        } else if (doc.path) {
-          addRecent(doc.path, res.name);
-        }
-        useDocs.setState((s) => ({
-          docs: s.docs.map((d) =>
-            d.id === doc.id ? { ...d, savedContent: d.content } : d
-          ),
-        }));
-        setSave("saved");
-        setTimeout(() => setSave("idle"), 1500);
-      }
-    } catch {
-      setSave("error");
+  const applySearch = useCallback((value: string, targetIndex = 0) => {
+    setFindText(value);
+    const view = editorViewBus.get();
+    if (!view) {
+      setMatchCount(0);
+      setMatchIndex(-1);
+      return;
     }
+
+    const query = new SearchQuery({ search: value });
+    view.dispatch({ effects: setSearchQuery.of(query) });
+    const matches = getMatches(view, query);
+    setMatchCount(matches.length);
+
+    if (matches.length === 0) {
+      setMatchIndex(-1);
+      return;
+    }
+
+    const index = Math.min(Math.max(targetIndex, 0), matches.length - 1);
+    setMatchIndex(index);
+    selectMatch(view, matches[index]);
+  }, []);
+
+  const clearSearch = useCallback((focusInput = true) => {
+    const view = editorViewBus.get();
+    if (view) {
+      view.dispatch({
+        effects: setSearchQuery.of(new SearchQuery({ search: "" })),
+      });
+    }
+    setFindText("");
+    setMatchCount(0);
+    setMatchIndex(-1);
+    if (focusInput) findInputRef.current?.focus();
+  }, []);
+
+  function moveMatch(direction: 1 | -1) {
+    const view = editorViewBus.get();
+    if (!view || !findText) return;
+
+    const query = new SearchQuery({ search: findText });
+    view.dispatch({ effects: setSearchQuery.of(query) });
+    const matches = getMatches(view, query);
+    setMatchCount(matches.length);
+    if (matches.length === 0) {
+      setMatchIndex(-1);
+      return;
+    }
+
+    const current = matchIndex >= 0 ? matchIndex : direction > 0 ? -1 : 0;
+    const next = (current + direction + matches.length) % matches.length;
+    setMatchIndex(next);
+    selectMatch(view, matches[next]);
   }
 
-  function toggleSearch() {
-    const ev = new KeyboardEvent("keydown", {
-      key: "f",
-      ctrlKey: true,
-      bubbles: true,
-    });
-    document.dispatchEvent(ev);
-  }
+  // Route the standard shortcut to the integrated status-bar search.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        canFind &&
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === "f"
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        findInputRef.current?.focus();
+        findInputRef.current?.select();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [canFind]);
+
+  // A search never carries into a different document or preview mode.
+  useEffect(() => {
+    clearSearch(false);
+  }, [doc?.id, doc?.view, clearSearch]);
 
   return (
     <footer className="statusbar">
       <div className="statusbar__left">
         <button
           className="status-btn"
-          onClick={handleSave}
+          onClick={() => void saveActiveDoc()}
           disabled={!doc}
           title="Save (⌘/Ctrl+S)"
+          aria-label="Save document"
         >
-          <Save size={13} />
+          <Save size={13} aria-hidden="true" />
         </button>
-        <button
-          className="status-btn"
-          onClick={toggleSearch}
-          disabled={!doc}
-          title="Find (⌘/Ctrl+F)"
-        >
-          <Search size={13} />
-        </button>
+
+        <div className={`statusbar__find${canFind ? "" : " is-disabled"}`}>
+          <Search size={12} aria-hidden="true" />
+          <input
+            ref={findInputRef}
+            type="search"
+            value={findText}
+            disabled={!canFind}
+            placeholder={canFind ? "Find in document" : "Find unavailable"}
+            aria-label="Find in document"
+            spellCheck={false}
+            onChange={(event) => applySearch(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                moveMatch(event.shiftKey ? -1 : 1);
+              } else if (event.key === "Escape") {
+                event.preventDefault();
+                clearSearch();
+                editorViewBus.get()?.focus();
+              }
+            }}
+          />
+          {findText && (
+            <span className="statusbar__find-count" aria-live="polite">
+              {matchCount === 0 ? "0/0" : `${matchIndex + 1}/${matchCount}`}
+            </span>
+          )}
+          <button
+            type="button"
+            className="statusbar__find-action"
+            disabled={!findText || matchCount === 0}
+            title="Previous match (Shift+Enter)"
+            aria-label="Previous match"
+            onClick={() => moveMatch(-1)}
+          >
+            <ChevronUp size={12} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="statusbar__find-action"
+            disabled={!findText || matchCount === 0}
+            title="Next match (Enter)"
+            aria-label="Next match"
+            onClick={() => moveMatch(1)}
+          >
+            <ChevronDown size={12} aria-hidden="true" />
+          </button>
+          {findText && (
+            <button
+              type="button"
+              className="statusbar__find-action"
+              title="Clear search (Escape)"
+              aria-label="Clear search"
+              onClick={() => clearSearch()}
+            >
+              <X size={12} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
         {doc && (
           <span className="statusbar__path" title={doc.path ?? "Unsaved"}>
             {doc.path ?? "Unsaved document"}
@@ -86,19 +229,35 @@ export function StatusBar() {
       </div>
 
       <div className="statusbar__right">
-        {doc && (
-          <>
-            <span>{stats.words} words</span>
-            <span>{stats.chars} chars</span>
-            <span>Ln {stats.lines}</span>
-          </>
-        )}
+        {doc &&
+          (selection ? (
+            <span className="statusbar__selection">
+              {selection.words} {selection.words === 1 ? "word" : "words"},{" "}
+              {selection.chars} chars selected
+            </span>
+          ) : (
+            <>
+              <span>{stats.words} words</span>
+              <span>{stats.chars} chars</span>
+              <span>Ln {stats.lines}</span>
+              {stats.words > 0 && (
+                <span title="Estimated reading time (~225 wpm)">
+                  ~{Math.max(1, Math.round(stats.words / 225))} min read
+                </span>
+              )}
+            </>
+          ))}
         <button
           className="status-btn"
           onClick={toggleTheme}
           title="Toggle theme"
+          aria-label="Toggle theme"
         >
-          {theme === "dark" ? <Sun size={13} /> : <Moon size={13} />}
+          {theme === "dark" ? (
+            <Sun size={13} aria-hidden="true" />
+          ) : (
+            <Moon size={13} aria-hidden="true" />
+          )}
         </button>
       </div>
     </footer>
