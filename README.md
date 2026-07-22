@@ -1,133 +1,126 @@
-# Quack Writer
+# Quack Writer 🦆
 
-A sleek, modern, **native** writing app — a faster, more capable alternative to
-Windows Notepad. Built with **Tauri 2 + React + TypeScript** and a
-CodeMirror 6 markdown editor. UI inspired by Obsidian / ChatGPT-style dark
-themes.
+[![CI](https://github.com/Flametossed/Quack-Writer/actions/workflows/ci.yml/badge.svg)](https://github.com/Flametossed/Quack-Writer/actions/workflows/ci.yml)
+
+A sleek, modern, **native Windows writing app** — a faster, more capable
+alternative to Notepad. Built with **Tauri 2, React 18, TypeScript, Zustand,
+and CodeMirror 6**.
 
 ![Start Menu](docs/start-menu.png)
 ![Writing interface](docs/writing-interface.png)
 
-## Features (v1)
+## Highlights
 
-- Start Menu splash with recent documents
-- IDE-style file Explorer on the left (open documents + filter)
-- Center editor with **tabs** for switching between documents
-- Right **format bar**: headings, bold/italic/strike/code/link, quotes,
-  lists, code blocks, font family switch (persisted)
-- Markdown + plain text editing with syntax highlighting
-- Live **word / char / line** counts in the status bar
-- Built-in **Find** (CodeMirror search, `⌘/Ctrl+F`)
-- **Auto-save** (debounced) + manual `⌘/Ctrl+S` / Save As
-- **Atomic saves** (temp file + rename — a crash can't corrupt your document)
-- **Unsaved-work protection**: dirty docs are flushed on tab switch, window
-  blur and app close; never-saved scratch docs prompt before being discarded
-- **Dark / light** theme toggle (persisted)
-- Recent documents list (persisted locally)
+**Writing**
 
-> Note: files are read as UTF-8. Legacy ANSI files are decoded best-effort
-> (unmappable bytes become `�`) and are saved back as UTF-8.
+- Markdown with **live preview** (rendered by default for `.md`; `Ctrl+E`
+  toggles source view with line numbers) and plain-text editing
+- Formatting sidebar: headings, bold/italic/strike, inline code, links,
+  quotes, lists, fenced code blocks
+- **Spellcheck** with red squiggles plus a right-click menu offering
+  suggestions and *Add to dictionary*, powered by the Windows Spell Checking
+  API — the same engine Edge uses
+- Readability-first editor: centered ~70-character column, comfortable line
+  height, softened dark & light palettes tuned for long sessions
 
-## Layout
+**Files**
 
-```
-┌──────────────────────────────────────────────────────┐
-│  Explorer │  Tabs              │ Format bar           │
-│  (file    ├────────────────────┤ Heading1/2/3 Bold … │
-│   tree +  │                    │                      │
-│   open    │     Editor         │                      │
-│   docs)   │     (CodeMirror)   │                      │
-│           │                    │                      │
-├───────────┴────────────────────┴──────────────────────┤
-│  Status bar (Save · Find · path · words/chars/lines) │
-└──────────────────────────────────────────────────────┘
-```
+- Open a **workspace folder**: lazy-loaded file tree, drag-and-drop between
+  folders, inline rename, subfolder creation, expand/collapse all
+- Tabs + an Open Documents panel with filtering, reordering, and dirty
+  indicators
+- **Auto-save** (debounced) with **atomic writes** (temp file + rename — a
+  crash can't corrupt your document)
+- **Unsaved-work protection**: dirty documents are flushed on tab switch,
+  window blur, and app close; never-saved scratch docs prompt first
+- Recent documents on the Start Menu
 
-## Prerequisites
+**Interface**
 
-- **Node.js ≥ 20** and **npm**
-- **Rust** (stable) to build the native binary — install via
-  [rustup](https://rustup.rs)
-- Platform prerequisites for Tauri
-  ([full guide](https://tauri.app/start/prerequisites/)):
-  - **Windows**: Microsoft Visual Studio C++ Build Tools (with the
-    "Desktop development with C++" workload) and the WebView2 runtime
-    (preinstalled on Windows 10/11)
-  - **macOS**: Xcode command-line tools (`xcode-select --install`)
-  - **Linux**: `webkit2gtk` and related dev packages
+- Application menu bar (File / View) with a Home button back to the Start Menu
+- Toggleable sidebars, persisted across launches
+- Integrated **Find** field in the status bar with match count and wrap-around
+- Selection-aware word/character counts and estimated reading time
+- Text zoom like Notepad: `Ctrl+=` / `Ctrl+−` / `Ctrl+0` and `Ctrl+scroll`
+- Dark / light theme and editor font family/size, all persisted
 
-## Getting started
+> Files are read as UTF-8. Legacy ANSI files are decoded best-effort
+> (unmappable bytes become `�`) and saved back as UTF-8.
 
-Install dependencies:
+## Keyboard shortcuts
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl+N` | New document |
+| `Ctrl+O` / `Ctrl+Shift+O` | Open file / open folder |
+| `Ctrl+S` | Save |
+| `Ctrl+E` | Toggle Markdown preview ⇄ source |
+| `Ctrl+F` | Find in document (`Enter` next, `Shift+Enter` previous, `Esc` clear) |
+| `Ctrl+B` / `Ctrl+Alt+B` | Toggle Explorer / Format sidebar |
+| `Ctrl+=` / `Ctrl+−` / `Ctrl+0` | Text zoom in / out / reset (also `Ctrl+scroll`) |
+| `Alt+F` / `Alt+V` | File / View menu |
+
+## Installation
+
+### Prerequisites
+
+- **Node.js ≥ 20** and npm
+- **Rust** (stable) via [rustup](https://rustup.rs)
+- Tauri platform prerequisites
+  ([guide](https://tauri.app/start/prerequisites/)) — on Windows: Visual
+  Studio C++ Build Tools ("Desktop development with C++" workload) and the
+  WebView2 runtime (preinstalled on Windows 10/11)
+
+### Build from source
 
 ```sh
 npm install
+npm run tauri dev     # run the native app
+npm run tauri build   # build installers → src-tauri/target/release/bundle/
 ```
 
-### Run the web dev server (frontend only, no native shell)
+## Development
 
-```sh
-npm run dev
-```
+| Script | Description |
+| --- | --- |
+| `npm run tauri dev` | Native app with frontend hot reload |
+| `npm run dev` | Frontend-only web mode (browser File System Access fallback) |
+| `npm run typecheck` | TypeScript validation |
+| `npm run lint` | ESLint |
+| `npm run build` | Production frontend build |
+| `cargo test --manifest-path src-tauri/Cargo.toml` | Native filesystem tests |
 
-This uses the browser **File System Access API** as a fallback for file
-open/save, so opening / saving files still works in Chrome/Edge.
+The app targets Windows first; `npm run dev` runs a browser fallback useful
+for quick UI work, but native features (workspace tree, spellcheck
+suggestions, atomic saves) need the Tauri shell.
 
-### Run the full native Tauri app
-
-```sh
-npm run tauri dev
-```
-
-### Build a native installer
-
-```sh
-npm run tauri build
-```
-
-Output bundles appear in `src-tauri/target/release/bundle/`.
-
-## Scripts
-
-| Script                | Description                                  |
-| --------------------- | -------------------------------------------- |
-| `npm run dev`         | Vite dev server (frontend only)              |
-| `npm run build`       | Type-check + build the frontend              |
-| `npm run preview`      | Preview the built frontend                    |
-| `npm run tauri dev`    | Run the full Tauri app                        |
-| `npm run tauri build`  | Build native installers                        |
-| `npm run lint`        | ESLint                                        |
-| `npm run typecheck`    | `tsc --noEmit`                                |
-
-## Project structure
+### Project structure
 
 ```
-.
-├── index.html
-├── src/                      # React frontend
-│   ├── App.tsx               # Shell: Start Menu vs Editor
-│   ├── components/
-│   │   ├── StartMenu*        # Splash + recents
-│   │   ├── FileExplorer*     # Left sidebar
-│   │   ├── Tabs*             # Document tabs
-│   │   ├── MarkdownEditor*   # CodeMirror editor
-│   │   ├── FormatBar*        # Right formatting rail
-│   │   ├── StatusBar*        # Bottom stats / actions
-│   │   └── ...
-│   ├── lib/fileIo.ts         # Tauri + browser fallback IO
-│   ├── lib/docActions.ts     # Shared open/save/close flows
-│   ├── store/                # zustand stores (docs, recents, theme, font)
-│   └── styles/global.css     # Theme tokens
-└── src-tauri/                # Rust backend
-    ├── Cargo.toml
-    ├── tauri.conf.json
-    ├── capabilities/default.json
-    ├── icons/                # App icons (placeholder duck glyph)
-    └── src/{main,lib,fs_io}.rs
+src/                        # React frontend
+├── App.tsx                 # Shell: Start Menu vs Editor
+├── components/             # StartMenu, FileExplorer, Tabs, MarkdownEditor,
+│                           # MarkdownPreview, FormatBar, StatusBar,
+│                           # AppMenuBar, EditorContextMenu, …
+├── lib/
+│   ├── docActions.ts       # All open/save/close/rename flows
+│   ├── fileIo.ts           # Dual-mode IO (Tauri ⇄ browser fallback)
+│   ├── spell.ts            # Native spelling suggestions
+│   └── useCloseGuard.ts    # App-level unsaved-work protection
+├── store/                  # Zustand: docs, workspace, ui, save, theme, font
+└── styles/global.css       # Theme tokens
+
+src-tauri/                  # Rust backend
+├── src/fs_io.rs            # Filesystem commands (atomic writes)
+├── src/spell.rs            # Windows Spell Checking API (ISpellChecker)
+└── capabilities/           # Minimal permission set
 ```
 
 ## Notes
 
 - App icons in `src-tauri/icons/` are generated placeholders (the duck
-  glyph). Regenerate a full set from a higher-fidelity source image with
-  `npm run tauri icon path/to/icon.png` before a public release.
+  glyph). Regenerate a full set with `npm run tauri icon path/to/icon.png`
+  before a public release.
+- Spelling suggestions use your Windows display language and fall back to
+  en-US; words added to the dictionary go to the Windows custom dictionary
+  shared with Edge.
