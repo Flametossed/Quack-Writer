@@ -205,24 +205,6 @@
   gap: 5px;
   margin-top: 2px;
 }
-.fmt-addfont__input {
-  width: 100%;
-  height: 28px;
-  padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 11px;
-}
-.fmt-addfont__input::placeholder {
-  color: var(--text-dim);
-}
-.fmt-addfont__input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 0;
-}
 .fmt-addfont__btn {
   display: flex;
   align-items: center;

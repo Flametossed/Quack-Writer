@@ -14,10 +14,9 @@
 }
 
 .md-preview__content {
-  /* Same centered readable measure as the source editor; em-based so it
-     tracks the text-zoom variable. */
+  /* Same left-anchored readable measure as the source editor; em-based so
+     it tracks the text-zoom variable. */
   max-width: var(--editor-measure);
-  margin: 0 auto;
   font-family: var(--font-editor);
   font-size: var(--editor-font-size);
   line-height: 1.7;

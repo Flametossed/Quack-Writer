@@ -97,22 +97,35 @@ export function MarkdownEditor() {
         ".cm-content": {
           caretColor: "var(--accent)",
           color: "var(--text)",
-          // Readable centered column (~70 chars); em-based so it tracks zoom.
+          // Readable line cap (~70 chars); em-based so it tracks zoom.
+          // Left-anchored so text stays next to the line-number gutter —
+          // centering here strands the gutter at the far left. The preview
+          // (no gutter) keeps the centered-page look instead.
           maxWidth: "var(--editor-measure)",
-          margin: "0 auto",
-          padding: "24px 28px 80px 28px",
+          padding: "8px 28px 80px 28px",
         },
         ".cm-gutters": {
           backgroundColor: "var(--bg)",
           color: "var(--text-dim)",
           borderRight: "1px solid var(--border-soft)",
-          padding: "24px 0 80px 8px",
+          // No vertical padding here: CodeMirror aligns gutter elements to
+          // the content's padding on its own; adding our own shifts every
+          // number down by that amount.
+          padding: "0 0 0 8px",
         },
         ".cm-lineNumbers .cm-gutterElement": {
           minWidth: "30px",
           padding: "0 8px 0 2px",
         },
-        ".cm-activeLine": { backgroundColor: "transparent" },
+        // Subtle current-line cues: a faint wash on the line plus an
+        // accented line number, so you always know where the caret lives.
+        ".cm-activeLine": {
+          backgroundColor: "color-mix(in srgb, var(--text) 5%, transparent)",
+        },
+        ".cm-activeLineGutter": {
+          backgroundColor: "transparent",
+          color: "var(--accent)",
+        },
         ".cm-selectionBackground, ::selection": {
           backgroundColor: "var(--accent-soft) !important",
         },
@@ -183,9 +196,9 @@ export function MarkdownEditor() {
         }}
         basicSetup={{
           lineNumbers: doc.language === "markdown",
-          highlightActiveLineGutter: false,
+          highlightActiveLineGutter: true,
           foldGutter: false,
-          highlightActiveLine: false,
+          highlightActiveLine: true,
           autocompletion: false,
           searchKeymap: false,
         }}

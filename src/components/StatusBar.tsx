@@ -11,6 +11,7 @@ import {
 import {
   ChevronDown,
   ChevronUp,
+  Eye,
   Moon,
   Save,
   Search,
@@ -49,6 +50,8 @@ export function StatusBar() {
   );
   const theme = useTheme((state) => state.theme);
   const toggleTheme = useTheme((state) => state.toggle);
+  const eyeCare = useTheme((state) => state.eyeCare);
+  const toggleEyeCare = useTheme((state) => state.toggleEyeCare);
   const selection = useSelection((state) => state.stats);
   const findInputRef = useRef<HTMLInputElement>(null);
   const [findText, setFindText] = useState("");
@@ -247,6 +250,15 @@ export function StatusBar() {
               )}
             </>
           ))}
+        <button
+          className={`status-btn${eyeCare ? " status-btn--on" : ""}`}
+          onClick={toggleEyeCare}
+          title="Eye protection (warm tint)"
+          aria-label="Toggle eye protection mode"
+          aria-pressed={eyeCare}
+        >
+          <Eye size={13} aria-hidden="true" />
+        </button>
         <button
           className="status-btn"
           onClick={toggleTheme}

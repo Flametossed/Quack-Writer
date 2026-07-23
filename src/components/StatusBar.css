@@ -131,3 +131,6 @@
 .status-btn:disabled {
   opacity: 0.4;
 }
+.status-btn--on {
+  color: var(--accent);
+}

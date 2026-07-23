@@ -21,7 +21,6 @@ import {
   Link as LinkIcon,
   Strikethrough,
   SquareCode,
-  Plus,
   Upload,
   Trash2,
 } from "lucide-react";
@@ -161,12 +160,9 @@ export function FormatBar() {
   const bumpSize = useFont((s) => s.bumpSize);
   const resetSize = useFont((s) => s.resetSize);
   const customFonts = useFont((s) => s.customFonts);
-  const addNamedFamily = useFont((s) => s.addNamedFamily);
   const addFileFont = useFont((s) => s.addFileFont);
   const removeCustom = useFont((s) => s.removeCustom);
 
-  const [newLabel, setNewLabel] = useState("");
-  const [newFamily, setNewFamily] = useState("");
   const [importing, setImporting] = useState(false);
 
   // Formatting edits the markdown source, so it's off while previewing.
@@ -362,33 +358,7 @@ export function FormatBar() {
           ) : null;
         })()}
 
-        <div className="fmt-addfont" role="group" aria-label="Add font by family name">
-          <input
-            className="fmt-addfont__input"
-            type="text"
-            placeholder="Family name, e.g. Comic Sans MS"
-            value={newFamily}
-            onChange={(e) => setNewFamily(e.target.value)}
-          />
-          <input
-            className="fmt-addfont__input"
-            type="text"
-            placeholder="Display label (optional)"
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-          />
-          <button
-            type="button"
-            className="fmt-addfont__btn"
-            disabled={!newFamily.trim()}
-            onClick={() => {
-              addNamedFamily(newLabel.trim() || newFamily, newFamily);
-              setNewLabel("");
-              setNewFamily("");
-            }}
-          >
-            <Plus size={12} /> Add family
-          </button>
+        <div className="fmt-addfont">
           <button
             type="button"
             className="fmt-addfont__btn fmt-addfont__btn--full"

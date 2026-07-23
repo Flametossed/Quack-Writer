@@ -3,6 +3,7 @@ import { useRecents } from "../store/recents";
 import { useDocs, makeDoc } from "../store/docs";
 import { useSaveStore } from "../store/save";
 import { useUi } from "../store/ui";
+import { useTheme } from "../store/theme";
 import { openFromPicker, openRecent } from "../lib/docActions";
 import {
   FileText,
@@ -11,6 +12,9 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
+  Sun,
+  Moon,
+  Eye,
 } from "lucide-react";
 import "./StartMenu.css";
 
@@ -22,6 +26,10 @@ export function StartMenu() {
   const errorMessage = useSaveStore((s) =>
     s.state === "error" ? s.message : null
   );
+  const theme = useTheme((s) => s.theme);
+  const toggleTheme = useTheme((s) => s.toggle);
+  const eyeCare = useTheme((s) => s.eyeCare);
+  const toggleEyeCare = useTheme((s) => s.toggleEyeCare);
 
   function handleNew() {
     openDoc(makeDoc("Untitled.md", ""));
@@ -97,6 +105,31 @@ export function StartMenu() {
             </ul>
           )}
         </div>
+      </div>
+
+      {/* Same bottom-right spot as the status-bar toggles in the editor. */}
+      <div className="start__corner">
+        <button
+          className={`start__corner-btn${eyeCare ? " is-on" : ""}`}
+          onClick={toggleEyeCare}
+          title="Eye protection (warm tint)"
+          aria-label="Toggle eye protection mode"
+          aria-pressed={eyeCare}
+        >
+          <Eye size={14} aria-hidden="true" />
+        </button>
+        <button
+          className="start__corner-btn"
+          onClick={toggleTheme}
+          title="Toggle theme"
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? (
+            <Sun size={14} aria-hidden="true" />
+          ) : (
+            <Moon size={14} aria-hidden="true" />
+          )}
+        </button>
       </div>
     </div>
   );

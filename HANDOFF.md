@@ -240,10 +240,10 @@ changes.
   updates focused, let HMR show changes, and run typecheck/lint/build after each
   completed interaction pass.
 
-## 2026-07-22: custom font system (uncommitted)
+## 2026-07-22: custom font system (committed as 6e409db)
 
-Added a multi-source font picker. All work is **uncommitted** in the dirty tree
-on top of the pushed state; commit only after explicit approval.
+Added a multi-source font picker (committed/pushed as `6e409db`, despite an
+earlier draft of this note saying otherwise).
 
 Sources supported, all surfaced in the FormatBar's "Editor font" section:
 
@@ -251,9 +251,9 @@ Sources supported, all surfaced in the FormatBar's "Editor font" section:
   replaced with a stable ID list in `src/store/font.ts` (`PRESETS`). Added
   Verdana, Trebuchet MS, Times, Georgia, Courier New, Garamond, and
   "Inter (if installed)".
-- **Add family by name** — text inputs under the dropdown persist a
-  `source: "named"` custom entry; the family string is applied to
-  `--font-editor` directly. No file IO.
+- **Add family by name** — store-level `source: "named"` entries still load
+  and work, but the two text inputs were later removed from the FormatBar as
+  clutter (2026-07-22 polish pass); there is no UI to create new ones.
 - **Import font file** — opens a native picker filtered to `.ttf/.otf/.woff/.woff2`,
   copies the bytes into `<app_data_dir>/fonts/<uid>.<ext>` via the new Rust
   `import_font_file` command, registers it through `FontFace`, and applies a
@@ -265,6 +265,28 @@ Custom entries are listed under an "Added by you" `<optgroup>` and can be
 removed with the per-active "Remove …" button (file fonts also delete the
 backing copy). State persists in `quack.customFonts` (localStorage). The
 active id stays in `quack.font` (preset key or `custom:<id>`).
+
+## 2026-07-22: UI polish pass (theme, eye care, editor column, borders)
+
+- FormatBar "Editor font": removed the add-family-by-name inputs; the section
+  is now dropdown → Remove (when custom active) → Import font file → size.
+- Start Menu: theme toggle + eye-protection toggle pinned bottom-right
+  (`.start__corner`), mirroring the status-bar buttons.
+- **Eye-protection mode**: warm sepia tint (`sepia(0.24) brightness(0.99)`)
+  applied via `[data-eyecare="1"] body` in `global.css`; state
+  `quack.eyeCare` lives in `src/store/theme.ts` next to the theme; Eye
+  buttons (accent-colored when on) in StatusBar and Start Menu.
+- **Editor column left-anchored**: `.cm-content` keeps the
+  `--editor-measure` line cap but no longer centers (the centered column
+  stranded the gutter far from the text). Markdown preview matches. Top
+  padding reduced 24px → 8px.
+- **Gutter alignment**: `.cm-gutters` must have NO vertical padding —
+  CodeMirror aligns gutter elements to content padding itself; doubling it
+  sagged every line number (looked like misalignment). Keep `0 0 0 8px`.
+- **Active-line cues** re-enabled: faint 5% wash + accent-colored line
+  number. No `font-weight` on `.cm-activeLineGutter` (bold shifts metrics).
+- **Border tokens brightened** for clearer panel separation: dark #414141 /
+  #333333, light #d2cfc6 / #e0ddd6.
 
 New/changed files:
 

@@ -1,4 +1,5 @@
 .start {
+  position: relative;
   height: 100%;
   width: 100%;
   display: flex;
@@ -10,6 +11,36 @@
       var(--bg-elev) 0%,
       var(--bg) 70%
     );
+}
+
+/* Corner toggles (eye protection + theme) pinned to the same bottom-right
+   spot they occupy in the editor's status bar. */
+.start__corner {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  display: flex;
+  gap: 2px;
+}
+.start__corner-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--text-dim);
+}
+.start__corner-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.start__corner-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.start__corner-btn.is-on {
+  color: var(--accent);
 }
 
 .start__card {
